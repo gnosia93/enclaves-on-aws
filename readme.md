@@ -9,3 +9,8 @@
 |2교시|	금융권 컴플라이언스와 비식별화|	KISA 가이드라인, 비식별 처리 기법, 공동 책임 모델 이해|
 |3교시|	실습: 첫 앙클레이브 띄우기|	EC2 인스턴스 생성, CPU/RAM 할당, Docker 이미지를 EIF로 변환|
 |4교시|	실습: 보안 시스템 구현 (Java/Rust)	|앙클레이브 내에서 KMS 키를 이용한 암호화/복호화 및 Attestation 구현|
+
+
+## 참고자료 ##
+
+* https://aws.amazon.com/ko/blogs/korea/aws-nitro-enclaves-isolated-ec2-environments-to-process-confidential-data/
