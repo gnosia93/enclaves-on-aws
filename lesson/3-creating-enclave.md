@@ -113,3 +113,19 @@ public class EnclaveProcessor {
     }
 }
 ```
+
+Dockerfile 
+```
+# 1단계: 빌드
+FROM maven:3.8-openjdk-17-slim AS build
+COPY src /app/src
+COPY pom.xml /app
+RUN mvn -f /app/pom.xml clean package
+
+# 2단계: 실행 (앙클레이브 탑재용)
+FROM openjdk:17-jdk-slim
+COPY --from=build /app/target/enclave-app.jar /app.jar
+
+# 앙클레이브 통신에 필요한 라이브러리 경로 설정 등
+ENTRYPOINT ["java", "-jar", "/app.jar"]
+```
