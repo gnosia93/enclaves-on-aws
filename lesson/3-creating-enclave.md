@@ -129,3 +129,5 @@ COPY --from=build /app/target/enclave-app.jar /app.jar
 # 앙클레이브 통신에 필요한 라이브러리 경로 설정 등
 ENTRYPOINT ["java", "-jar", "/app.jar"]
 ```
+* 메모리 최적화: Java는 JVM 때문에 기본적으로 메모리를 많이 먹습니다. 앙클레이브 실행 시 --memory 옵션을 넉넉히(최소 1GB 이상) 주거나, GraalVM을 이용해 네이티브 이미지로 빌드하여 메모리 사용량을 줄이는 것이 금융권 실무 팁입니다.
+* 의존성 관리: 앙클레이브 안은 인터넷이 안 되므로 모든 라이브러리가 JAR 파일 안에 포함(Fat JAR)되어 있어야 합니다.
