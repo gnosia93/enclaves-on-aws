@@ -14,3 +14,4 @@
 ## 참고자료 ##
 
 * https://aws.amazon.com/ko/blogs/korea/aws-nitro-enclaves-isolated-ec2-environments-to-process-confidential-data/
+* https://aws.amazon.com/ko/ec2/nitro/
