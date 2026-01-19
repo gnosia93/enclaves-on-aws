@@ -83,4 +83,9 @@ spec:
         emptyDir: {}
 
 ```
+### 3단계: 컨테이너 간 통신 (vsock 통로 구축) ###
+사이드카 컨테이너가 앙클레이브를 띄우면, 메인 컨테이너는 어떻게 대화할까요?
+* 부팅 시: 사이드카 컨테이너가 nitro-cli run-enclave 명령어로 앙클레이브를 실행합니다.
+* 연결: 메인 컨테이너(Java)는 Amazon vsock 라이브러리를 사용하여 호스트의 vsock 인터페이스에 접근합니다.
+* 데이터 흐름: Main App -> Vsock -> Nitro Hypervisor -> Enclave
 
