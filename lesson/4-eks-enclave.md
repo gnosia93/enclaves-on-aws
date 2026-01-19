@@ -41,5 +41,46 @@ resources:
 * 구조: 하나의 Pod 안에 [애플리케이션 컨테이너]와 [앙클레이브 관리 컨테이너]를 같이 넣습니다.
 * 장점: 앙클레이브가 해당 파드 전용 금고가 되어 보안 사고 시 추적이 쉽고 설계가 단순합니다.
 
+-----
 
+### 1단계: 파드(Pod) 구조 설계 ###
+하나의 파드 안에 두 개의 컨테이너를 정의합니다.
+* 메인 컨테이너 (App): 비즈니스 로직(Java/Spring)을 수행하며, 앙클레이브에 데이터를 던지는 역할.
+* 사이드카 컨테이너 (Enclave Manager): 앙클레이브(EIF 파일)를 실제로 로드하고 vsock 프록시 역할을 수행.
+
+### 2단계: EKS 배포 매니페스트 (YAML) ###
+이게 실습의 핵심 코드입니다. nitro-enclaves 리소스를 요청하는 부분이 포인트입니다.
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: confidential-app
+spec:
+  template:
+    spec:
+      containers:
+      # 1. 메인 앱 컨테이너
+      - name: main-app
+        image: my-repo/spring-boot-app:latest
+        env:
+        - name: ENCLAVE_CID
+          value: "16" # 앙클레이브와 통신할 ID
+
+      # 2. 앙클레이브 사이드카 컨테이너
+      - name: enclave-sidecar
+        image: my-repo/nitro-enclave-manager:latest
+        resources:
+          limits:
+            ://aws.amazon.com: "1" # 앙클레이브 자원 점유
+        securityContext:
+          privileged: true # 하드웨어 직접 제어를 위해 필요
+        volumeMounts:
+        - name: enclave-info
+          mountPath: /data
+      
+      volumes:
+      - name: enclave-info
+        emptyDir: {}
+
+```
 
