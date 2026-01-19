@@ -89,3 +89,32 @@ spec:
 * 연결: 메인 컨테이너(Java)는 Amazon vsock 라이브러리를 사용하여 호스트의 vsock 인터페이스에 접근합니다.
 * 데이터 흐름: Main App -> Vsock -> Nitro Hypervisor -> Enclave
 
+### 앙클레이브 이미지 ###
+nitro-enclave-manager는 AWS가 공식적으로 "이거 쓰세요"라고 제공하는 단일 이미지는 없으며, AWS Nitro Enclaves CLI가 설치된 환경에서 직접 빌드해야 합니다
+
+* 1. AWS 공식 샘플 활용 (가장 추천)
+AWS에서 제공하는 Nitro Enclaves Kubernetes 가이드나 공식 워크숍 레포지토리에 Dockerfile 샘플이 포함되어 있습니다.
+이 파일들을 가져와서 docker build를 통해 본인의 리포지토리(ECR 등)에 올린 뒤 워크숍에서 사용해야 합니다.
+
+* 2. 직접 빌드하는 법 (Dockerfile 구성)
+사이드카 컨테이너는 앙클레이브를 실행(run-enclave)하고 관리하는 역할을 해야 하므로, 아래와 같은 구성으로 이미지를 만듭니다.
+```
+# 앙클레이브 매니저 이미지 예시
+FROM amazonlinux:2
+
+# 1. Nitro CLI 도구 설치
+RUN amazon-linux-extras install aws-nitro-enclaves-cli -y
+RUN yum install -y aws-nitro-enclaves-cli-devel
+
+# 2. 앙클레이브 이미지(EIF) 파일 복사 (미리 빌드해둔 파일)
+COPY my-enclave-app.eif /data/my-enclave-app.eif
+
+# 3. 앙클레이브 실행 스크립트 실행
+# (메모리와 CPU 자원을 할당하며 앙클레이브를 띄움)
+ENTRYPOINT ["nitro-cli", "run-enclave", "--eif-path", "/data/my-enclave-app.eif", "--memory", "512", "--cpu-count", "2"]
+
+```
+
+#### 3. AWS 마켓플레이스 및 오픈소스 검색 ####
+직접 만들기 번거롭다면, 보안 기업들이 제공하는 이미지를 참고할 수 있습니다.
+Anjuna나 Fortanix 같은 기밀 컴퓨팅 전문 기업들이 앙클레이브 관리를 돕는 런타임을 제공하지만, 대부분 유료 솔루션입니다.
