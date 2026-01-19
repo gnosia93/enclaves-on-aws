@@ -187,7 +187,8 @@ public class HighPerformanceEnclave {
     }
 }
 ```
-KMS
+* KMS Key Policy (JSON)
+KMS 콘솔의 '키 정책' 탭에 아래 내용을 추가하세요. (기존 정책에 Statement를 추가하는 방식입니다)
 ```
 {
   "Sid": "Allow-Only-Specific-Enclave-to-Decrypt",
