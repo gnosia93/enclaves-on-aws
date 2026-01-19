@@ -22,6 +22,16 @@
 
 준비물: 발표 자료(PPT), 성공 사례 백서(AWS Artifact 활용), 네트워킹을 위한 다과
 
+## 워크샵 제목 ##
+* 개발자 대상 (Hands-on Focus)
+  * 제목: 기밀 컴퓨팅(Confidential Computing) 실무: AWS Nitro Enclaves와 Rust/Java를 활용한 데이터 격리 보안
+  * 부제: 관리자도 볼 수 없는 '제로 트러스트' 실행 환경 구축하기
+* 비즈니스/고객 대상 (Strategy Focus)
+  * 제목: 금융 및 민감 데이터 혁신을 위한 기밀 컴퓨팅(Confidential Computing) 전략
+  * 부제: 클라우드 규제 대응과 데이터 활용 극대화를 위한 보안 아키텍처의 미래
+* 통합 세션 (General)
+  * 제목: [Confidential Computing Day] AWS Nitro 기반의 안전한 데이터 비식별화 아키텍처 설계
+
 ## 참고자료 ##
 
 * https://aws.amazon.com/ko/blogs/korea/aws-nitro-enclaves-isolated-ec2-environments-to-process-confidential-data/
