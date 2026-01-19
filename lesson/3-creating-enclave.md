@@ -24,3 +24,92 @@
 ### 5. 통신 테스트 (vsock) ###
 * 앙클레이브는 인터넷이 안 되므로, 부모 서버와 가상 소켓(vsock) 통신으로 데이터를 주고받습니다.
 * 부모 서버에서 비식별화할 샘플 데이터를 소켓으로 쏴주고, 앙클레이브가 이를 처리해 다시 돌려주는 과정을 확인하며 실습을 마무리합니다.
+---
+
+```
+{
+  "transaction_id": "TX-99821",
+  "user_name": "홍길동",
+  "resident_number": "900101-1234567",
+  "card_number": "1234-5678-9012-3456",
+  "amount": 55000,
+  "location": "서울특별시 강남구 역삼동"
+}
+```
+
+### 부모 서버 로직 (Java / Spring Boot) ###
+사용자의 요청을 받아 앙클레이브 금고로 데이터를 전달하는 역할을 합니다.
+EnclaveService.java
+```
+import org.springframework.stereotype.Service;
+import com.amazon.aws.nitrowalle.VsockClient; // 가상의 vsock 라이브러리
+
+@Service
+public class EnclaveService {
+    public String processSensitiveData(String jsonData) {
+        try {
+            // 1. 앙클레이브와 vsock 연결 (CID는 보통 16 이상 할당됨)
+            VsockClient client = new VsockClient(16, 5000); 
+            
+            // 2. 금고(Enclave) 안으로 원본 데이터 전송
+            client.send(jsonData);
+            
+            // 3. 비식별화된 결과만 수신
+            String result = client.receive();
+            
+            client.close();
+            return result; // "사용자A", "900101-1******" 가 포함된 데이터
+        } catch (Exception e) {
+            return "Enclave 통신 실패";
+        }
+    }
+}
+```
+
+### Enclave 내부용 Java 코드 (Main.java) ###
+이 코드는 앙클레이브 안에서 5000번 포트를 열고 기다리다가, 부모 서버가 데이터를 던져주면 비식별화해서 다시 돌려줍니다.
+```
+import java.io.*;
+import java.net.StandardProtocolFamily;
+import java.nio.ByteBuffer;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+// 주의: vsock 라이브러리(예: junixsocket)를 사용하여 하드웨어 소켓에 접근해야 합니다.
+
+public class EnclaveProcessor {
+    public static void main(String[] args) throws Exception {
+        System.out.println("Enclave Java Processor Starting...");
+
+        // 1. VSOCK 서버 소켓 생성 (포트 5000)
+        // 실제 환경에서는 Nitro Enclaves 전용 vsock 라이브러리를 종속성에 추가해야 합니다.
+        try (ServerSocketChannel serverChannel = ServerSocketChannel.open(StandardProtocolFamily.valueOf("VSOCK"))) {
+            serverChannel.bind(new VsockAddress(VsockAddress.CID_ANY, 5000));
+
+            while (true) {
+                try (SocketChannel clientChannel = serverChannel.accept()) {
+                    // 2. 데이터 수신
+                    ByteBuffer buffer = ByteBuffer.allocate(2048);
+                    clientChannel.read(buffer);
+                    buffer.flip();
+                    
+                    String input = new String(buffer.array(), 0, buffer.limit());
+                    System.out.println("Received sensitive data in Enclave.");
+
+                    // 3. 비식별 처리 (주민번호 마스킹 예시)
+                    String deIdentified = deIdentify(input);
+
+                    // 4. 결과 전송
+                    ByteBuffer outputBuffer = ByteBuffer.wrap(deIdentified.getBytes());
+                    clientChannel.write(outputBuffer);
+                }
+            }
+        }
+    }
+
+    private static String deIdentify(String data) {
+        // 간단한 정규식을 이용한 비식별화 로직 (이름, 주민번호 마스킹)
+        return data.replaceAll("\"user_name\":\"[^\"]+\"", "\"user_name\":\"사용자A\"")
+                   .replaceAll("\"resident_number\":\"(\\d{6})-\\d{7}\"", "\"resident_number\":\"$1-1******\"");
+    }
+}
+```
