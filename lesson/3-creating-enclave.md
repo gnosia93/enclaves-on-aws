@@ -187,7 +187,27 @@ public class HighPerformanceEnclave {
     }
 }
 ```
+KMS
+```
+{
+  "Sid": "Allow-Only-Specific-Enclave-to-Decrypt",
+  "Effect": "Allow",
+  "Principal": {
+    "AWS": "arn:aws:iam::123456789012:role/EC2-Enclave-Host-Role"
+  },
+  "Action": [
+    "kms:Decrypt",
+    "kms:GenerateDataKey"
+  ],
+  "Resource": "*",
+  "Condition": {
+    "StringEquals": {
+      "kms:RecipientAttestation:ImageSha384": "워크숍에서_생성된_EIF_파일의_PCR0_값"
+    }
+  }
+}
 
+```
 
 
 
